@@ -1,0 +1,103 @@
+﻿<Window x:Class="Tcoc.FashionMnist.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:Tcoc.FashionMnist"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        Title="MainWindow"
+        Width="800"
+        Height="450"
+        mc:Ignorable="d">
+
+    <Window.Resources>
+        <DataTemplate x:Key="MnistImageTemplate">
+            <StackPanel Margin="8"
+                        Orientation="Horizontal">
+                <Image Source="{Binding Source}" />
+                <TextBlock Margin="8,0,0,0"
+                           Text="{Binding Label}" />
+            </StackPanel>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <!--  Train Data  -->
+        <StackPanel Grid.Row="0"
+                    Grid.Column="0"
+                    Margin="8">
+
+            <TextBlock Text="Train Dataset" />
+            <TextBlock Text="{Binding TrainImages.Count, StringFormat=Count: 0, Mode=OneWay}" />
+
+        </StackPanel>
+
+        <ListBox Grid.Row="1"
+                 Grid.Column="0"
+                 ItemTemplate="{StaticResource MnistImageTemplate}"
+                 ItemsSource="{Binding TrainImages}" />
+
+        <!--  Test Data  -->
+        <StackPanel Grid.Row="0"
+                    Grid.Column="1"
+                    Margin="8">
+
+            <TextBlock Text="Test Dataset" />
+            <TextBlock Text="{Binding TestImages.Count, StringFormat=Count: 0, Mode=OneWay}" />
+
+        </StackPanel>
+
+        <ListBox Grid.Row="1"
+                 Grid.Column="1"
+                 ItemTemplate="{StaticResource MnistImageTemplate}"
+                 ItemsSource="{Binding TestImages}"
+                 SelectedItem="{Binding SelectedTestImage,
+                                        Mode=TwoWay}" />
+
+        <!--  Control  -->
+        <Grid Grid.Row="1"
+              Grid.Column="2"
+              Margin="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Button Padding="4"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Command="{Binding TrainModelCommand}">
+                Train Model
+            </Button>
+
+            <!--  Selected Image  -->
+            <StackPanel Grid.Row="1"
+                        Margin="0,8,0,0">
+                <TextBlock FontWeight="SemiBold"
+                           Text="Selected test image" />
+                <ContentPresenter Content="{Binding SelectedTestImage}"
+                                  ContentTemplate="{StaticResource MnistImageTemplate}" />
+            </StackPanel>
+            <!--  Predicted label  -->
+            <StackPanel Grid.Row="2">
+                <TextBlock FontWeight="SemiBold"
+                           Text="Predicted label" />
+                <TextBlock Margin="8"
+                           Text="{Binding PredictedLabelForSelectedImage}" />
+            </StackPanel>
+
+        </Grid>
+
+
+    </Grid>
+</Window>
