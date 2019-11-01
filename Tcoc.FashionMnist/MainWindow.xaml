@@ -14,11 +14,47 @@
             <StackPanel Margin="8"
                         Orientation="Horizontal">
                 <Image Source="{Binding Source}" />
-                <TextBlock Margin="8,0,0,0"
-                           Text="{Binding Label}" />
+                <StackPanel>
+
+                    <TextBlock Margin="8,0,0,0"
+                               Text="{Binding Label}" />
+                    <TextBlock x:Name="PredictionTb"
+                               Margin="8,0,0,0"
+                               Foreground="Red"
+                               Text="{Binding PredictedLabel}" />
+                </StackPanel>
             </StackPanel>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding PredictionCorrect}"
+                             Value="True">
+                    <Setter TargetName="PredictionTb" Property="Foreground" Value="Green" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
         </DataTemplate>
+
+        <Style x:Key="Label"
+               TargetType="TextBlock">
+            <Setter Property="Width" Value="140" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+        <Style x:Key="Value"
+               TargetType="FrameworkElement">
+            <Setter Property="Width" Value="100" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style x:Key="SubHeading"
+               TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="8,0,8,8" />
+            <Setter Property="Height" Value="24" />
+        </Style>
+
     </Window.Resources>
+
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -31,72 +67,127 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <!--  Train Data  -->
-        <StackPanel Grid.Row="0"
+        <TextBlock Margin="16"
+                   FontSize="22"
+                   Text="Fashion Mnist Explorer" />
+
+        <!--  Train Data Column  -->
+        <StackPanel Grid.Row="1"
                     Grid.Column="0"
                     Margin="8">
 
-            <TextBlock Text="Train Dataset" />
-            <TextBlock Text="{Binding TrainImages.Count, StringFormat=Count: 0, Mode=OneWay}" />
+            <TextBlock Style="{StaticResource SubHeading}"
+                       Text="Training Data" />
+
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource Label}"
+                           Text="Nr. of Images" />
+                <TextBlock Style="{StaticResource Value}"
+                           Text="{Binding TrainImages.Count, Mode=OneWay, FallbackValue=4000}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource Label}"
+                           Text="Algorithm" />
+                <ComboBox SelectedIndex="0"
+                          Style="{StaticResource Value}">
+                    <ComboBoxItem>SCDA</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+
+            <Button Content="Train Model" />
+            <Button Content="Save Model" />
+
+            <TextBlock Style="{StaticResource Label}"
+                       Text="Saved Models" />
+
+            <ListBox Height="100">
+                <ListBoxItem Content="Model1.0001" />
+                <ListBoxItem Content="Model1.0002" />
+                <ListBoxItem Content="Model1.0003" />
+            </ListBox>
+
+            <Button Margin="8"
+                    Content="Load Model" />
 
         </StackPanel>
 
-        <ListBox Grid.Row="1"
-                 Grid.Column="0"
-                 ItemTemplate="{StaticResource MnistImageTemplate}"
-                 ItemsSource="{Binding TrainImages}" />
-
-        <!--  Test Data  -->
-        <StackPanel Grid.Row="0"
+        <!--  Test Data Column  -->
+        <StackPanel Grid.Row="1"
                     Grid.Column="1"
                     Margin="8">
 
-            <TextBlock Text="Test Dataset" />
-            <TextBlock Text="{Binding TestImages.Count, StringFormat=Count: 0, Mode=OneWay}" />
+            <TextBlock Style="{StaticResource SubHeading}"
+                       Text="Test Data" />
+            <StackPanel Orientation="Horizontal">
 
+                <TextBlock Style="{StaticResource Label}"
+                           Text="Nr. of Test Images" />
+                <TextBlock Style="{StaticResource Value}"
+                           Text="{Binding TestImages.Count, Mode=OneWay, FallbackValue=4000}" />
+            </StackPanel>
+
+
+            <ListBox Height="300"
+                     ItemTemplate="{StaticResource MnistImageTemplate}"
+                     ItemsSource="{Binding TestImages}"
+                     SelectedItem="{Binding SelectedTestImage, Mode=TwoWay}" />
         </StackPanel>
 
-        <ListBox Grid.Row="1"
-                 Grid.Column="1"
-                 ItemTemplate="{StaticResource MnistImageTemplate}"
-                 ItemsSource="{Binding TestImages}"
-                 SelectedItem="{Binding SelectedTestImage,
-                                        Mode=TwoWay}" />
+        <!--  Result Column  -->
+        <StackPanel Grid.Row="1"
+                    Grid.Column="2">
 
-        <!--  Control  -->
-        <Grid Grid.Row="1"
-              Grid.Column="2"
-              Margin="8">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto" />
-                <RowDefinition Height="auto" />
-                <RowDefinition Height="auto" />
-                <RowDefinition />
-            </Grid.RowDefinitions>
-            <Button Padding="4"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Top"
-                    Command="{Binding TrainModelCommand}">
-                Train Model
-            </Button>
+            <TextBlock Style="{StaticResource SubHeading}"
+                       Text="" />
+
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource Label}"
+                           Text="Model available" />
+                <TextBlock Style="{StaticResource Value}"
+                           Text="No" />
+            </StackPanel>
 
             <!--  Selected Image  -->
-            <StackPanel Grid.Row="1"
-                        Margin="0,8,0,0">
-                <TextBlock FontWeight="SemiBold"
-                           Text="Selected test image" />
-                <ContentPresenter Content="{Binding SelectedTestImage}"
-                                  ContentTemplate="{StaticResource MnistImageTemplate}" />
-            </StackPanel>
-            <!--  Predicted label  -->
-            <StackPanel Grid.Row="2">
-                <TextBlock FontWeight="SemiBold"
-                           Text="Predicted label" />
-                <TextBlock Margin="8"
-                           Text="{Binding PredictedLabelForSelectedImage}" />
+            <TextBlock Style="{StaticResource Label}"
+                       Text="Selected test image" />
+
+            <Border Margin="0,0,0,8"
+                    HorizontalAlignment="Left"
+                    Background="LightGray">
+
+                <Image Width="40"
+                       Height="40" />
+            </Border>
+
+            <!--  Label  -->
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource Label}"
+                           Text="Label" />
+                <TextBlock Style="{StaticResource Value}"
+                           Text="{Binding PredictedLabelForSelectedImage, FallbackValue=Dress}" />
             </StackPanel>
 
-        </Grid>
+
+            <!--  Predicted label  -->
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource Label}"
+                           Text="Predicted label" />
+                <TextBlock Style="{StaticResource Value}"
+                           Text="{Binding PredictedLabelForSelectedImage, FallbackValue=Dress}" />
+            </StackPanel>
+
+            <Button Content="Predict All" />
+
+            <StackPanel Margin="0,8,0,0"
+                        Orientation="Horizontal">
+                <TextBlock Style="{StaticResource Label}"
+                           Text="Score" />
+                <TextBlock Style="{StaticResource Value}"
+                           Text="{Binding Score, StringFormat=0.00%, FallbackValue=67.45}" />
+            </StackPanel>
+
+        </StackPanel>
 
 
     </Grid>

@@ -1,4 +1,5 @@
 ﻿using Microsoft.ML.Data;
+using System;
 
 namespace Tcoc.FashionMnist.Model
 {
@@ -16,7 +17,6 @@ namespace Tcoc.FashionMnist.Model
 
         [VectorType(ImgWidth * ImgHeight)]
         public byte[] Pixels { get; }
-
         public int Label { get; }
 
         public MnistImage(byte[] pixels, int label)

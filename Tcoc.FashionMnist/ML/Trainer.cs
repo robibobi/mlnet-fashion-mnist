@@ -26,16 +26,18 @@ namespace Tcoc.FashionMnist.ML
         {
 
             IDataView data = _context.Data.LoadFromEnumerable(images);
-            
-            var featureTransform = _context.Transforms.Conversion
-                .ConvertType("Features", nameof(MnistImage.Pixels), DataKind.Single);
+           
+            var featureTransform = _context.Transforms.Conversion.ConvertType(
+                outputColumnName: "Features",
+                inputColumnName: "Pixels",
+                outputKind: DataKind.Single);
 
             var labelToKeyTransform = _context.Transforms.Conversion.MapValueToKey(
                 outputColumnName: "LabelAsKey",
                 inputColumnName: "Label",
                 keyOrdinality: ValueToKeyMappingEstimator.KeyOrdinality.ByValue);
 
-            var dropLabelTransform = _context.Transforms.DropColumns("Label");
+            var dropLabelTransform = _context.Transforms.DropColumns("Label", "Pixels");
 
             var trainer = _context.MulticlassClassification.Trainers.SdcaMaximumEntropy(
                 labelColumnName: "LabelAsKey",
@@ -50,72 +52,50 @@ namespace Tcoc.FashionMnist.ML
             var pipeline = trainerInput
                 .Append(trainer);
 
-            var preview = trainerInput.Preview(data);
-            // TODO: Add "explain" method that describes Columns
-
             _trainedModel = pipeline.Fit(data);
-
+            PrintColumns("Model", _trainedModel, data);
         }
 
-        public MulticlassClassificationMetrics EvaluateModel(IEnumerable<MnistImage> testImages)
+
+        public void LoadModelFromFile(string modelFileName)
         {
-            if (_trainedModel == null)
-                return null;
-
-            var testData = _context.Data.LoadFromEnumerable(testImages);
-            var predictions = _trainedModel.Transform(testData);
-            var metrics = _context.MulticlassClassification.Evaluate(data: predictions, labelColumnName: "LabelAsKey", scoreColumnName: "Score");
-            
-            var sb = new StringBuilder();
-
-            sb.Append($"************************************************************\n");
-            sb.Append($"*    Metrics for multi-class classification model   \n");
-            sb.Append($"*-----------------------------------------------------------");
-            sb.Append($"    AccuracyMacro = {metrics.MacroAccuracy:0.####}, a value between 0 and 1, the closer to 1, the better\n");
-            sb.Append($"    AccuracyMicro = {metrics.MicroAccuracy:0.####}, a value between 0 and 1, the closer to 1, the better\n");
-            sb.Append($"    LogLoss = {metrics.LogLoss:0.####}, the closer to 0, the better\n");
-            sb.Append($"    LogLoss for class 1 = {metrics.PerClassLogLoss[0]:0.####}, the closer to 0, the better\n");
-            sb.Append($"    LogLoss for class 2 = {metrics.PerClassLogLoss[1]:0.####}, the closer to 0, the better\n");
-            sb.Append($"    LogLoss for class 3 = {metrics.PerClassLogLoss[2]:0.####}, the closer to 0, the better\n");
-            sb.Append($"************************************************************\n");
-
-            string result = sb.ToString();
-            Debug.WriteLine(result);
-
-            return metrics;
+            _trainedModel = _context.Model.Load(modelFileName, out DataViewSchema _);
         }
 
-
-        class MnistTestImage
+        public void SaveModelToFile(string modelFileName)
         {
-
-            [VectorType(MnistImage.ImgWidth * MnistImage.ImgHeight)]
-            public byte[] Pixels { get; }
-
-            public MnistTestImage(byte[] pixels)
-            {
-                Pixels = pixels;
-            }
+            var data = _context.Data.LoadFromEnumerable(
+                new List<MnistImage>() { new MnistImage(null, 0) });
+            _context.Model.Save(_trainedModel, data.Schema, modelFileName);
         }
+
 
         public FashionLabel Predict(MnistImage image)
         {
             if (_trainedModel == null)
                 return FashionLabel.Unknown;
-            var testImage = new MnistTestImage(image.Pixels);
 
-            // TODO: Label aus Testdaten entfernen
-            var engine = _context.Model.CreatePredictionEngine<MnistTestImage, MnistPrediction>(_trainedModel);
+            var engine = _context.Model.CreatePredictionEngine<MnistImage, MnistPrediction>(_trainedModel);
 
-            var prediction = engine.Predict(testImage);
+            var prediction = engine.Predict(image);
 
-
-            // Alternativ
-            //_trainedModel.MakePredictionFunction(...)
-
-            return (FashionLabel)prediction.PredictedLabel;
+            return (FashionLabel)(prediction.PredictedLabel -1); // !!
         }
 
-       
+        private void PrintColumns(string name, ITransformer t, IDataView data)
+        {
+            var debuggerView = t.Preview(data, maxRows: 3);
+            Debug.WriteLine($"Columns of '{name}'");
+            Debug.Write("[");
+            foreach (var columnInfo in debuggerView.ColumnView)
+            {
+                Debug.Write($"{columnInfo.Column.Name} ({columnInfo.Column.Type})");
+                if (debuggerView.ColumnView.IndexOf(columnInfo) != debuggerView.ColumnView.Length - 1)
+                    Debug.Write(" | ");
+            }
+            Debug.Write("]");
+        }
+
+
     }
 }

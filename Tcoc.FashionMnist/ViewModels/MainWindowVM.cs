@@ -22,6 +22,8 @@ namespace Tcoc.FashionMnist.ViewModels
         const string TrainLabelPath = "DataRaw/train-labels-idx1-ubyte";
         const int TrainImageCount = 60000;
 
+        const string ModelFileName = "TrainedModel.model";
+
         private readonly Trainer _trainer;
         private MnistImageVM _selectedTestImage;
 
@@ -47,9 +49,20 @@ namespace Tcoc.FashionMnist.ViewModels
             set { _predictedLabelForSelectedImage = value; RaisePropertyChanged(nameof(PredictedLabelForSelectedImage)); }
         }
 
+        private double _score;
+
+        public double Score
+        {
+            get { return _score; }
+            set { _score = value; RaisePropertyChanged(nameof(Score)); }
+        }
+
+
         public MulticlassClassificationMetrics EvaluationMetrics { get; private set; }
 
         public DelegateCommand TrainModelCommand { get; }
+        public DelegateCommand SaveModelCommand { get; }
+        public DelegateCommand LoadModelCommand { get; }
 
         public MainWindowVM()
         {
@@ -59,6 +72,8 @@ namespace Tcoc.FashionMnist.ViewModels
             var testLabelFile = new FileInfo(TestLabelPath);
 
             TrainModelCommand = new DelegateCommand(TrainModel);
+            LoadModelCommand = new DelegateCommand(LoadModel);
+            SaveModelCommand = new DelegateCommand(SaveModel);
 
             MnistReader reader = new MnistReader();
             _trainer = new Trainer();
@@ -70,6 +85,16 @@ namespace Tcoc.FashionMnist.ViewModels
             TestImages = reader.ReadDataset(testImageFile, testLabelFile, TestImageCount)
                 .Select(CreateVM)
                 .ToList();
+        }
+
+        private void SaveModel()
+        {
+            _trainer.SaveModelToFile(ModelFileName);
+        }
+
+        private void LoadModel()
+        {
+            _trainer.LoadModelFromFile(ModelFileName);
         }
 
         private void SelectedTestImageChanged()
@@ -92,8 +117,14 @@ namespace Tcoc.FashionMnist.ViewModels
         {
             _trainer.TrainModel(TrainImages.Select(i => i.Image));
 
-            EvaluationMetrics = _trainer.EvaluateModel(TestImages.Select(i => i.Image));
-            RaisePropertyChanged(nameof(EvaluationMetrics));
+            foreach(MnistImageVM testImageVM in TestImages)
+            {
+                testImageVM.SetPredictedLabel(_trainer.Predict(testImageVM.Image));
+            }
+
+            Score = (double)TestImages
+                .Where(i => i.PredictionCorrect)
+                .Count() / TestImageCount;
         }
     }
 }

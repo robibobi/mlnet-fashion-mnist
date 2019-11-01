@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Microsoft.ML.Data;
+using System;
 
 namespace Tcoc.FashionMnist.Model
 {
     class MnistPrediction
     {
-        public int PredictedLabel { get; set; }
+        public UInt32 PredictedLabel { get; set; }
     }
 }
