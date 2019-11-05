@@ -4,9 +4,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:local="clr-namespace:Tcoc.FashionMnist"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        Title="MainWindow"
+        Title="MNIST Explorer"
         Width="800"
-        Height="450"
+        Height="480"
         mc:Ignorable="d">
 
     <Window.Resources>
@@ -83,7 +83,9 @@
                 <TextBlock Style="{StaticResource Label}"
                            Text="Nr. of Images" />
                 <TextBlock Style="{StaticResource Value}"
-                           Text="{Binding TrainImages.Count, Mode=OneWay, FallbackValue=4000}" />
+                           Text="{Binding TrainImages.Count,
+                                          Mode=OneWay,
+                                          FallbackValue=4000}" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
@@ -95,8 +97,10 @@
                 </ComboBox>
             </StackPanel>
 
-            <Button Content="Train Model" />
-            <Button Content="Save Model" />
+            <Button Command="{Binding TrainModelCommand}"
+                    Content="Train Model" />
+            <Button Command="{Binding SaveModelCommand}"
+                    Content="Save Model" />
 
             <TextBlock Style="{StaticResource Label}"
                        Text="Saved Models" />
@@ -108,6 +112,7 @@
             </ListBox>
 
             <Button Margin="8"
+                    Command="{Binding LoadModelCommand}"
                     Content="Load Model" />
 
         </StackPanel>
@@ -124,14 +129,17 @@
                 <TextBlock Style="{StaticResource Label}"
                            Text="Nr. of Test Images" />
                 <TextBlock Style="{StaticResource Value}"
-                           Text="{Binding TestImages.Count, Mode=OneWay, FallbackValue=4000}" />
+                           Text="{Binding TestImages.Count,
+                                          Mode=OneWay,
+                                          FallbackValue=4000}" />
             </StackPanel>
 
 
             <ListBox Height="300"
                      ItemTemplate="{StaticResource MnistImageTemplate}"
                      ItemsSource="{Binding TestImages}"
-                     SelectedItem="{Binding SelectedTestImage, Mode=TwoWay}" />
+                     SelectedItem="{Binding SelectedTestImage,
+                                            Mode=TwoWay}" />
         </StackPanel>
 
         <!--  Result Column  -->
@@ -157,7 +165,8 @@
                     Background="LightGray">
 
                 <Image Width="40"
-                       Height="40" />
+                       Height="40"
+                       Source="{Binding SelectedTestImage.Source}" />
             </Border>
 
             <!--  Label  -->
@@ -165,7 +174,8 @@
                 <TextBlock Style="{StaticResource Label}"
                            Text="Label" />
                 <TextBlock Style="{StaticResource Value}"
-                           Text="{Binding PredictedLabelForSelectedImage, FallbackValue=Dress}" />
+                           Text="{Binding SelectedTestImage.Label,
+                                          FallbackValue=Dress}" />
             </StackPanel>
 
 
@@ -174,17 +184,21 @@
                 <TextBlock Style="{StaticResource Label}"
                            Text="Predicted label" />
                 <TextBlock Style="{StaticResource Value}"
-                           Text="{Binding PredictedLabelForSelectedImage, FallbackValue=Dress}" />
+                           Text="{Binding PredictedLabelForSelectedImage,
+                                          FallbackValue=Dress}" />
             </StackPanel>
 
-            <Button Content="Predict All" />
+            <Button Command="{Binding PredictAllCommand}"
+                    Content="Predict All" />
 
             <StackPanel Margin="0,8,0,0"
                         Orientation="Horizontal">
                 <TextBlock Style="{StaticResource Label}"
                            Text="Score" />
                 <TextBlock Style="{StaticResource Value}"
-                           Text="{Binding Score, StringFormat=0.00%, FallbackValue=67.45}" />
+                           Text="{Binding Score,
+                                          StringFormat=0.00%,
+                                          FallbackValue=67.45}" />
             </StackPanel>
 
         </StackPanel>

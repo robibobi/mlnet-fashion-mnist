@@ -1,8 +1,5 @@
-﻿using Microsoft.ML.Data;
-using Prism.Commands;
-using Prism.Common;
+﻿using Prism.Commands;
 using Prism.Mvvm;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,6 +9,18 @@ using Tcoc.FashionMnist.Util;
 
 namespace Tcoc.FashionMnist.ViewModels
 {
+    /// <summary>
+    /// TODOS:
+    /// - ModelAvailable Property implementieren
+    /// - IDialogService implementieren mit
+    ///    * ShowProgressDialog
+    ///    * ShowFileNameDialog
+    /// - Trainieren des Models async mit Progressialog implementieren
+    /// - PredictAllAsync implementieren
+    /// - SaveModel und LoadModel implementieren.
+    /// - Buttons und Listen entsprechend sperren.
+    /// - 2. Algorigthmus implementieren
+    /// </summary>
     class MainWindowVM : BindableBase
     {
         const string TestImagePath = "DataRaw/t10k-images-idx3-ubyte";
@@ -25,13 +34,14 @@ namespace Tcoc.FashionMnist.ViewModels
         const string ModelFileName = "TrainedModel.model";
 
         private readonly Trainer _trainer;
-        private MnistImageVM _selectedTestImage;
+        private MnistImageVM? _selectedTestImage;
+        private double _score;
+        private FashionLabel _predictedLabelForSelectedImage;
 
         public List<MnistImageVM> TrainImages { get; }
         public List<MnistImageVM> TestImages { get; }
-        private FashionLabel _predictedLabelForSelectedImage;
 
-        public MnistImageVM SelectedTestImage
+        public MnistImageVM? SelectedTestImage
         {
             get { return _selectedTestImage; }
             set 
@@ -42,14 +52,11 @@ namespace Tcoc.FashionMnist.ViewModels
             }
         }
 
-
         public FashionLabel PredictedLabelForSelectedImage
         {
             get { return _predictedLabelForSelectedImage; }
             set { _predictedLabelForSelectedImage = value; RaisePropertyChanged(nameof(PredictedLabelForSelectedImage)); }
         }
-
-        private double _score;
 
         public double Score
         {
@@ -57,12 +64,11 @@ namespace Tcoc.FashionMnist.ViewModels
             set { _score = value; RaisePropertyChanged(nameof(Score)); }
         }
 
-
-        public MulticlassClassificationMetrics EvaluationMetrics { get; private set; }
-
         public DelegateCommand TrainModelCommand { get; }
         public DelegateCommand SaveModelCommand { get; }
         public DelegateCommand LoadModelCommand { get; }
+
+        public DelegateCommand PredictAllCommand { get; }
 
         public MainWindowVM()
         {
@@ -74,6 +80,7 @@ namespace Tcoc.FashionMnist.ViewModels
             TrainModelCommand = new DelegateCommand(TrainModel);
             LoadModelCommand = new DelegateCommand(LoadModel);
             SaveModelCommand = new DelegateCommand(SaveModel);
+            PredictAllCommand = new DelegateCommand(PredictAll);
 
             MnistReader reader = new MnistReader();
             _trainer = new Trainer();
@@ -105,19 +112,14 @@ namespace Tcoc.FashionMnist.ViewModels
             }
         }
 
-        private void PredictLabel(MnistImage img)
-        {
-            PredictedLabelForSelectedImage = _trainer.Predict(img);
-        }
-
-
-        private MnistImageVM CreateVM(MnistImage img) => new MnistImageVM(img);
-
         private void TrainModel()
         {
             _trainer.TrainModel(TrainImages.Select(i => i.Image));
+        }
 
-            foreach(MnistImageVM testImageVM in TestImages)
+        private void PredictAll()
+        {
+            foreach (MnistImageVM testImageVM in TestImages)
             {
                 testImageVM.SetPredictedLabel(_trainer.Predict(testImageVM.Image));
             }
@@ -126,5 +128,13 @@ namespace Tcoc.FashionMnist.ViewModels
                 .Where(i => i.PredictionCorrect)
                 .Count() / TestImageCount;
         }
+
+        private void PredictLabel(MnistImage img)
+        {
+            PredictedLabelForSelectedImage = _trainer.Predict(img);
+        }
+
+        private MnistImageVM CreateVM(MnistImage img) => new MnistImageVM(img);
+
     }
 }

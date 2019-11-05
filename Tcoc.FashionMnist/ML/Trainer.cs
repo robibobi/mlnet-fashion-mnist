@@ -14,7 +14,7 @@ namespace Tcoc.FashionMnist.ML
     /// </summary>
     class Trainer
     {
-        private ITransformer _trainedModel;
+        private ITransformer? _trainedModel;
         private MLContext _context;
 
         public Trainer()
@@ -65,7 +65,7 @@ namespace Tcoc.FashionMnist.ML
         public void SaveModelToFile(string modelFileName)
         {
             var data = _context.Data.LoadFromEnumerable(
-                new List<MnistImage>() { new MnistImage(null, 0) });
+                new List<MnistImage>() { new MnistImage(new byte[0], 0) });
             _context.Model.Save(_trainedModel, data.Schema, modelFileName);
         }
 
