@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Tcoc.FashionMnist.Model;
+using Tcoc.FashionMnist.ViewModels;
 
 namespace Tcoc.FashionMnist.ML
 {
@@ -77,9 +78,26 @@ namespace Tcoc.FashionMnist.ML
 
             var engine = _context.Model.CreatePredictionEngine<MnistImage, MnistPrediction>(_trainedModel);
 
-            var prediction = engine.Predict(image);
+            return Predict(image, engine);
+        }
 
-            return (FashionLabel)(prediction.PredictedLabel -1); // !!
+        public void PredictAll(IEnumerable<MnistImageVM> imageViewModels)
+        {
+            if (_trainedModel == null)
+                return;
+
+            var engine = _context.Model.CreatePredictionEngine<MnistImage, MnistPrediction>(_trainedModel);
+
+            foreach(var imageVM in imageViewModels)
+            {
+                imageVM.SetPredictedLabel(Predict(imageVM.Image, engine));
+            }
+        }
+
+        private FashionLabel Predict(MnistImage img, PredictionEngine<MnistImage, MnistPrediction> engine)
+        {
+            var prediction = engine.Predict(img);
+            return (FashionLabel)(prediction.PredictedLabel - 1); // !!
         }
 
         private void PrintColumns(string name, ITransformer t, IDataView data)

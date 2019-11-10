@@ -83,9 +83,7 @@
                 <TextBlock Style="{StaticResource Label}"
                            Text="Nr. of Images" />
                 <TextBlock Style="{StaticResource Value}"
-                           Text="{Binding TrainImages.Count,
-                                          Mode=OneWay,
-                                          FallbackValue=4000}" />
+                           Text="{Binding TrainImages.Count, Mode=OneWay, FallbackValue=4000}" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
@@ -100,7 +98,8 @@
             <Button Command="{Binding TrainModelCommand}"
                     Content="Train Model" />
             <Button Command="{Binding SaveModelCommand}"
-                    Content="Save Model" />
+                    Content="Save Model"
+                    IsEnabled="{Binding ModelAvailable}" />
 
             <TextBlock Style="{StaticResource Label}"
                        Text="Saved Models" />
@@ -129,17 +128,15 @@
                 <TextBlock Style="{StaticResource Label}"
                            Text="Nr. of Test Images" />
                 <TextBlock Style="{StaticResource Value}"
-                           Text="{Binding TestImages.Count,
-                                          Mode=OneWay,
-                                          FallbackValue=4000}" />
+                           Text="{Binding TestImages.Count, Mode=OneWay, FallbackValue=4000}" />
             </StackPanel>
 
 
             <ListBox Height="300"
+                     IsEnabled="{Binding ModelAvailable}"
                      ItemTemplate="{StaticResource MnistImageTemplate}"
                      ItemsSource="{Binding TestImages}"
-                     SelectedItem="{Binding SelectedTestImage,
-                                            Mode=TwoWay}" />
+                     SelectedItem="{Binding SelectedTestImage, Mode=TwoWay}" />
         </StackPanel>
 
         <!--  Result Column  -->
@@ -153,7 +150,7 @@
                 <TextBlock Style="{StaticResource Label}"
                            Text="Model available" />
                 <TextBlock Style="{StaticResource Value}"
-                           Text="No" />
+                           Text="{Binding ModelAvailable}" />
             </StackPanel>
 
             <!--  Selected Image  -->
@@ -174,8 +171,7 @@
                 <TextBlock Style="{StaticResource Label}"
                            Text="Label" />
                 <TextBlock Style="{StaticResource Value}"
-                           Text="{Binding SelectedTestImage.Label,
-                                          FallbackValue=Dress}" />
+                           Text="{Binding SelectedTestImage.Label, FallbackValue=-}" />
             </StackPanel>
 
 
@@ -184,25 +180,28 @@
                 <TextBlock Style="{StaticResource Label}"
                            Text="Predicted label" />
                 <TextBlock Style="{StaticResource Value}"
-                           Text="{Binding PredictedLabelForSelectedImage,
-                                          FallbackValue=Dress}" />
+                           Text="{Binding PredictedLabelForSelectedImage, FallbackValue=-}" />
             </StackPanel>
 
             <Button Command="{Binding PredictAllCommand}"
-                    Content="Predict All" />
+                    Content="Predict All"
+                    IsEnabled="{Binding ModelAvailable}" />
 
             <StackPanel Margin="0,8,0,0"
                         Orientation="Horizontal">
                 <TextBlock Style="{StaticResource Label}"
                            Text="Score" />
                 <TextBlock Style="{StaticResource Value}"
-                           Text="{Binding Score,
-                                          StringFormat=0.00%,
-                                          FallbackValue=67.45}" />
+                           Text="{Binding Score, StringFormat=0.00%, FallbackValue=-}" />
             </StackPanel>
 
         </StackPanel>
 
+
+        <!--  Dialog Region  -->
+        <ContentControl x:Name="DialogRegion"
+                        Grid.RowSpan="3"
+                        Grid.ColumnSpan="3" />
 
     </Grid>
 </Window>

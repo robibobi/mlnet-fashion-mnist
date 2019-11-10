@@ -1,20 +1,21 @@
 ﻿using Prism.Commands;
 using Prism.Mvvm;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Tcoc.FashionMnist.ML;
 using Tcoc.FashionMnist.Model;
+using Tcoc.FashionMnist.Services;
 using Tcoc.FashionMnist.Util;
 
 namespace Tcoc.FashionMnist.ViewModels
 {
     /// <summary>
     /// TODOS:
-    /// - ModelAvailable Property implementieren
-    /// - IDialogService implementieren mit
-    ///    * ShowProgressDialog
-    ///    * ShowFileNameDialog
+    /// - Gespeicherte Modelle anzeigen
+    /// - Guten Dateinamen vorschlagen
+    /// - Dateinamen Validierung
     /// - Trainieren des Models async mit Progressialog implementieren
     /// - PredictAllAsync implementieren
     /// - SaveModel und LoadModel implementieren.
@@ -33,10 +34,13 @@ namespace Tcoc.FashionMnist.ViewModels
 
         const string ModelFileName = "TrainedModel.model";
 
+        private readonly IDialogService _dialogService;
+
         private readonly Trainer _trainer;
         private MnistImageVM? _selectedTestImage;
         private double _score;
         private FashionLabel _predictedLabelForSelectedImage;
+        private bool _modelAvailable;
 
         public List<MnistImageVM> TrainImages { get; }
         public List<MnistImageVM> TestImages { get; }
@@ -64,6 +68,13 @@ namespace Tcoc.FashionMnist.ViewModels
             set { _score = value; RaisePropertyChanged(nameof(Score)); }
         }
 
+        public bool ModelAvailable
+        {
+            get { return _modelAvailable; }
+            set { _modelAvailable = value; RaisePropertyChanged(nameof(ModelAvailable)); }
+        }
+
+
         public DelegateCommand TrainModelCommand { get; }
         public DelegateCommand SaveModelCommand { get; }
         public DelegateCommand LoadModelCommand { get; }
@@ -72,6 +83,8 @@ namespace Tcoc.FashionMnist.ViewModels
 
         public MainWindowVM()
         {
+            _dialogService = new SimpleDialogService();
+
             var trainImageFile = new FileInfo(TrainImagePath);
             var trainLabelFile = new FileInfo(TrainLabelPath);
             var testImageFile = new FileInfo(TestImagePath);
@@ -94,14 +107,19 @@ namespace Tcoc.FashionMnist.ViewModels
                 .ToList();
         }
 
-        private void SaveModel()
+        private async void SaveModel()
         {
-            _trainer.SaveModelToFile(ModelFileName);
+            string fileName = await _dialogService.ShowModelNameDialog("Model001.zip");
+            if (!String.IsNullOrEmpty(fileName))
+            {
+                _trainer.SaveModelToFile(ModelFileName);
+            }
         }
 
         private void LoadModel()
         {
             _trainer.LoadModelFromFile(ModelFileName);
+            ModelAvailable = true;
         }
 
         private void SelectedTestImageChanged()
@@ -112,17 +130,19 @@ namespace Tcoc.FashionMnist.ViewModels
             }
         }
 
-        private void TrainModel()
+        private async void TrainModel()
         {
-            _trainer.TrainModel(TrainImages.Select(i => i.Image));
+           await _dialogService.ShowProgressDialog("Please wait", report =>
+            {
+                report("Training model...");
+                _trainer.TrainModel(TrainImages.Select(i => i.Image));
+                ModelAvailable = true;
+            });
         }
 
         private void PredictAll()
         {
-            foreach (MnistImageVM testImageVM in TestImages)
-            {
-                testImageVM.SetPredictedLabel(_trainer.Predict(testImageVM.Image));
-            }
+            _trainer.PredictAll(TestImages);
 
             Score = (double)TestImages
                 .Where(i => i.PredictionCorrect)
